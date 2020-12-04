@@ -1,0 +1,21 @@
+type User @model {
+  id: ID!
+  username: String!
+  file: S3Object
+}
+
+type Document @model 
+  @auth(rules: [
+    {allow: owner, ownerField: "localowner", operations: [create, update, delete]}
+  ]) {
+  id: ID!
+  name: String!
+  fileLocation: S3Object,
+  localowner: String
+}
+
+type S3Object {
+  bucket: String!
+  region: String!
+  key: String!
+}

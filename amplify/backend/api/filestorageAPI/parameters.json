@@ -1,0 +1,11 @@
+{
+    "AppSyncApiName": "filestorageAPI",
+    "DynamoDBBillingMode": "PAY_PER_REQUEST",
+    "DynamoDBEnableServerSideEncryption": false,
+    "AuthCognitoUserPoolId": {
+        "Fn::GetAtt": [
+            "authfilestoragefe8c9439",
+            "Outputs.UserPoolId"
+        ]
+    }
+}
