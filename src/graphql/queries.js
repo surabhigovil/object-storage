@@ -77,3 +77,42 @@ export const listDocuments = /* GraphQL */ `
     }
   }
 `;
+export const getFile = /* GraphQL */ `
+  query GetFile($id: ID!) {
+    getFile(id: $id) {
+      id
+      name
+      file {
+        bucket
+        region
+        key
+      }
+      owner
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const listFiles = /* GraphQL */ `
+  query ListFiles(
+    $filter: ModelFileFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listFiles(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        name
+        file {
+          bucket
+          region
+          key
+        }
+        owner
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+  }
+`;

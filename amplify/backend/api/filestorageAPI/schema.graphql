@@ -19,3 +19,11 @@ type S3Object {
   region: String!
   key: String!
 }
+
+type File @model @auth(rules: [{ allow: owner , ownerField: "groups"}]) {
+  id: ID!
+  name: String,
+  file: S3Object,
+  owner: String,
+  groups: [String]
+}

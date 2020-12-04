@@ -1,11 +1,14 @@
 import React, { useState, useReducer, useEffect } from 'react'
 import { withAuthenticator } from 'aws-amplify-react'
-import { Storage, API, graphqlOperation } from 'aws-amplify'
+import Amplify, {Auth, Storage, API, graphqlOperation } from 'aws-amplify'
 import { v4 as uuid } from 'uuid'
 import { createUser as CreateUser } from './graphql/mutations'
-import { listUsers } from './graphql/queries'
+import { createFile as CreateFile } from './graphql/mutations'
+import { listUsers, listFiles } from './graphql/queries'
 import { onCreateUser } from './graphql/subscriptions'
 import config from './aws-exports'
+import * as queries from './graphql/queries';
+
 
 const {
   aws_user_files_s3_bucket_region: region,
@@ -15,6 +18,10 @@ const {
 const initialState = {
   users: []
 }
+
+const user = Auth.currentAuthenticatedUser()
+const userSignedIn = ' '
+
 
 function reducer(state, action) {
   switch(action.type) {
@@ -30,13 +37,20 @@ function reducer(state, action) {
 function App() {
   const [file, updateFile] = useState(null)
   const [username, updateUsername] = useState('')
+  const [signedInUser, updateUser] = useState('')
   const [state, dispatch] = useReducer(reducer, initialState)
   const [fileUrl, updateAvatarUrl] = useState('')
+  const [signedIn, setUsername] = useState('');
+  const [myFiles, setuserFiles] = useState('')
+
 
   function handleChange(event) {
     const { target: { value, files } } = event
     const [image] = files || []
+    const user = Auth.currentAuthenticatedUser()
     updateFile(image || value)
+    updateUser(user.username)
+    userSignedIn(user.username)
   }
 
   async function fetchImage(key) {
@@ -58,6 +72,16 @@ function App() {
     }
   }
 
+  async function getLoggedInUserFiles() {
+    try{
+      const {result} = await API.graphql(graphqlOperation(queries.listFiles, {assetId: signedIn}));
+      setuserFiles(result.listFiles.items)
+      console.log(result)
+    } catch(err) {
+      console.log('error fetching files')
+    }
+  }
+
   async function createUser(event) {
     event.preventDefault()
     if (!username) return alert('please enter a username')
@@ -70,6 +94,7 @@ function App() {
             region,
         }
         const inputData = { username, file: fileForUpload }
+        const fileinputData = { name: file.name , file: fileForUpload, owner: signedInUser }
 
         try {
           await Storage.put(key, file, {
@@ -77,6 +102,7 @@ function App() {
             level: 'private'
           })
           await API.graphql(graphqlOperation(CreateUser, { input: inputData }))
+          await API.graphql(graphqlOperation(CreateFile, { input: fileinputData }))
           updateUsername('')
           console.log('successfully stored user data!')
         } catch (err) {
@@ -85,7 +111,15 @@ function App() {
     }
   }
   useEffect(() => {
+    Auth.currentAuthenticatedUser({
+      bypassCache: false  // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
+    }).then(user => {
+      setUsername(user.username);
+      console.log(`Load additional settings for user: ${user.username}`);
+      // TBD
+    }).catch(err => console.log(err));
     fetchUsers()
+    getLoggedInUserFiles()
     const subscription = API.graphql(graphqlOperation(onCreateUser))
       .subscribe({
         next: async userData => {
@@ -112,19 +146,28 @@ function App() {
       <button
         style={styles.button}
         onClick={createUser}>Save Image</button>
-      {
-        state.users.map((u, i) => {
-          return (
-            <div
-              key={i}
-            >
-              <p
-                style={styles.username}
-               onClick={() => fetchImage(u.file.key)}>{u.username}</p>
-            </div>
-          )
-        })
-      }
+      <label>All Files
+        {
+          state.users.map((u, i) => {
+            return (
+              <div
+                key={i}
+              >
+                <p
+                  style={styles.username}
+                onClick={() => fetchImage(u.file.key)}>{u.username}</p>
+              </div>
+            )
+          })
+        } 
+      </label>
+      <label>My Files
+        <ul>
+          {state.myFiles.map(post => (
+            <li>{post.id}</li>
+          ))}
+        </ul>
+      </label>
       <img
         src={fileUrl}
         style={{ width: 300 }}
