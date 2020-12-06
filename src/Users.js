@@ -12,8 +12,6 @@ import config from './aws-exports'
 import * as queries from './graphql/queries';
 import * as mutations from './graphql/mutations'
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
-import Home from './components/Home';
-import About from './components/Admin';
 
 const {
   aws_user_files_s3_bucket_region: region,
@@ -53,20 +51,6 @@ function App() {
     const [image] = files || []
     updateFile(image || value)
     //updateUser(user.username)
-  }
-
-  async function fetchFile(key) {
-    try {
-      const extension = file.name.split(".")[1]
-      const { type: mimeType } = file
-      const key = `images/${uuid()}${fileName}.${extension}`      
-      const url = `https://${bucket}.s3.${region}.amazonaws.com/public/${key}`
-      const inputData = { name: fileName , image: url }
-      const imageData = await Storage.get(key, {level: 'private'})
-      updateAvatarUrl(imageData)
-    } catch(err) {
-      console.log('error: ', err)
-    }
   }
   
   async function fetchUsers() {
@@ -178,13 +162,9 @@ function App() {
     }
   }
   useEffect(() => {
-    Auth.currentAuthenticatedUser({
-      bypassCache: false  // Optional, By default is false. If set to true, this call will send a request to Cognito to get the latest user data
-    }).then(user => {
-      setUsername(user.username);
-      console.log(`Load additional settings for user: ${user.username}`);
-      // TBD
-    }).catch(err => console.log(err));
+    const user =  Auth.currentAuthenticatedUser();
+    console.log('user: ', user);
+    console.log('user attributes: ', user.attributes);
     fetchUsers()
     getLoggedInUserFiles()
     const subscription = API.graphql(graphqlOperation(onCreateUser))
