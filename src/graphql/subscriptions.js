@@ -95,8 +95,8 @@ export const onDeleteDocument = /* GraphQL */ `
   }
 `;
 export const onCreateFile = /* GraphQL */ `
-  subscription OnCreateFile($owner: String!) {
-    onCreateFile(owner: $owner) {
+  subscription OnCreateFile {
+    onCreateFile {
       id
       name
       file {
@@ -104,15 +104,15 @@ export const onCreateFile = /* GraphQL */ `
         region
         key
       }
-      owner
+      owners
       createdAt
       updatedAt
     }
   }
 `;
 export const onUpdateFile = /* GraphQL */ `
-  subscription OnUpdateFile($owner: String!) {
-    onUpdateFile(owner: $owner) {
+  subscription OnUpdateFile {
+    onUpdateFile {
       id
       name
       file {
@@ -120,15 +120,15 @@ export const onUpdateFile = /* GraphQL */ `
         region
         key
       }
-      owner
+      owners
       createdAt
       updatedAt
     }
   }
 `;
 export const onDeleteFile = /* GraphQL */ `
-  subscription OnDeleteFile($owner: String!) {
-    onDeleteFile(owner: $owner) {
+  subscription OnDeleteFile {
+    onDeleteFile {
       id
       name
       file {
@@ -136,7 +136,7 @@ export const onDeleteFile = /* GraphQL */ `
         region
         key
       }
-      owner
+      owners
       createdAt
       updatedAt
     }

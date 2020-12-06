@@ -87,7 +87,7 @@ export const getFile = /* GraphQL */ `
         region
         key
       }
-      owner
+      owners
       createdAt
       updatedAt
     }
@@ -108,7 +108,7 @@ export const listFiles = /* GraphQL */ `
           region
           key
         }
-        owner
+        owners
         createdAt
         updatedAt
       }

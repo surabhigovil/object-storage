@@ -1,5 +1,7 @@
 import React, { useState, useReducer, useEffect } from 'react'
-import { withAuthenticator } from 'aws-amplify-react'
+import { Button, Table, Nav } from 'react-bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { withAuthenticator, AmplifySignOut } from '@aws-amplify/ui-react'
 import Amplify, {Auth, Storage, API, graphqlOperation } from 'aws-amplify'
 import { v4 as uuid } from 'uuid'
 import { createUser as CreateUser } from './graphql/mutations'
@@ -8,7 +10,10 @@ import { listUsers, listFiles } from './graphql/queries'
 import { onCreateUser } from './graphql/subscriptions'
 import config from './aws-exports'
 import * as queries from './graphql/queries';
-
+import * as mutations from './graphql/mutations'
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
+import Home from './components/Home';
+import About from './components/Admin';
 
 const {
   aws_user_files_s3_bucket_region: region,
@@ -16,12 +21,9 @@ const {
 } = config
 
 const initialState = {
-  users: []
+  users: [],
+  myFiles: []
 }
-
-const user = Auth.currentAuthenticatedUser()
-const userSignedIn = ' '
-
 
 function reducer(state, action) {
   switch(action.type) {
@@ -40,28 +42,33 @@ function App() {
   const [signedInUser, updateUser] = useState('')
   const [state, dispatch] = useReducer(reducer, initialState)
   const [fileUrl, updateAvatarUrl] = useState('')
-  const [signedIn, setUsername] = useState('');
-  const [myFiles, setuserFiles] = useState('')
+  const [signedIn, setUsername] = useState('')
+  const [userToShare, setuserToShare] = useState('')
+
+  //const [myFiles, setuserFiles] = useState('')
 
 
   function handleChange(event) {
     const { target: { value, files } } = event
     const [image] = files || []
-    const user = Auth.currentAuthenticatedUser()
     updateFile(image || value)
-    updateUser(user.username)
-    userSignedIn(user.username)
+    //updateUser(user.username)
   }
 
-  async function fetchImage(key) {
+  async function fetchFile(key) {
     try {
+      const extension = file.name.split(".")[1]
+      const { type: mimeType } = file
+      const key = `images/${uuid()}${fileName}.${extension}`      
+      const url = `https://${bucket}.s3.${region}.amazonaws.com/public/${key}`
+      const inputData = { name: fileName , image: url }
       const imageData = await Storage.get(key, {level: 'private'})
       updateAvatarUrl(imageData)
     } catch(err) {
       console.log('error: ', err)
     }
   }
-
+  
   async function fetchUsers() {
     try {
      let users = await API.graphql(graphqlOperation(listUsers))
@@ -72,13 +79,73 @@ function App() {
     }
   }
 
-  async function getLoggedInUserFiles() {
+  async function deleteFile(id) {
+    if (id) {
+      let res = await API.graphql(graphqlOperation(queries.listFiles, {id: id}));
+      const result = {
+        id: id
+      }
+    
+      await API.graphql(graphqlOperation(mutations.deleteFile, {input: result }));
+
+    } else {
+      console.error("No file to delete")
+    }
+  }
+  async function shareFile(id) { // share with other users
+    let res = await API.graphql(graphqlOperation(queries.listFiles, {id: signedIn}));
+    let tempList = res.data.listFiles.items
+
+    if (userToShare) {
+      // Split if mulitple user names provided
+      console.log(userToShare)
+      let userArr = splitUserList(userToShare)
+      console.log('userArr = ', userArr)
+
+      tempList.map((u) => {
+        if (u.id == id) {
+          let newOwnerList = u.owners.concat(userArr.map((user) => user ))
+
+          try {
+            const params =  {
+              id: id, 
+              owners: newOwnerList
+            }
+            let status = API.graphql(graphqlOperation(mutations.updateFile, {input: params}));
+            console.log(JSON.stringify(status))
+          } catch(err) {
+            console.log('error fetching files', err)
+          }
+        }
+      })
+    } else {
+      console.error('No user name provided')
+    }
+  }
+
+  function splitUserList(userToShare) {
+    return userToShare.trim().split(',').map((i) => i.trim())
+  }
+
+  async function getLoggedInUserFiles() { // get current user files
     try{
-      const {result} = await API.graphql(graphqlOperation(queries.listFiles, {assetId: signedIn}));
-      setuserFiles(result.listFiles.items)
-      console.log(result)
-    } catch(err) {
-      console.log('error fetching files')
+      let result = await API.graphql(graphqlOperation(queries.listFiles));
+      let tempFile = result.data.listFiles.items
+      const userNow = Auth.user.attributes.email
+      let params;
+      let fileOwners;
+      console.log("signedUser=", userNow)
+      tempFile.map((file) => {
+        if(file.owners && file.owners.includes(userNow))
+        {
+          initialState.myFiles.push({
+            id: file.id, 
+            name: file.name
+          })
+        }
+      })
+    }catch(err) {
+      console.log('error fetching files', err)
     }
   }
 
@@ -132,6 +199,10 @@ function App() {
 
   return (
     <div style={styles.container}>
+      <h1>File Storage</h1>
+       <div className="sign-out">
+         <AmplifySignOut />
+       </div>
       <input
         label="File to upload"
         type="file"
@@ -140,12 +211,12 @@ function App() {
       />
       <input
         placeholder='Username'
-        value={username}
+        value="Enter File Name"
         onChange={e => updateUsername(e.target.value)}
       />
-      <button
+      <Button type="submit"
         style={styles.button}
-        onClick={createUser}>Save Image</button>
+        onClick={createUser}>Upload File</Button>
       <label>All Files
         {
           state.users.map((u, i) => {
@@ -153,25 +224,61 @@ function App() {
               <div
                 key={i}
               >
-                <p
-                  style={styles.username}
-                onClick={() => fetchImage(u.file.key)}>{u.username}</p>
               </div>
             )
           })
         } 
       </label>
-      <label>My Files
-        <ul>
-          {state.myFiles.map(post => (
-            <li>{post.id}</li>
-          ))}
-        </ul>
-      </label>
-      <img
-        src={fileUrl}
-        style={{ width: 300 }}
-      />
+      <Table striped bordered hover variant="dark">
+        <thead>
+          <tr>
+            <th>Fiile</th>
+            <th>Shared With</th>
+            <th>Enter User Email</th>
+            <th>Delete File</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              {
+                state.myFiles.map((u, i) => {
+                  return (
+                      <p>{u.name}</p>
+                  )
+                })
+              }
+            </td>
+            <td>
+              {
+                state.myFiles.map((u, i) => {
+                  return (
+                    <input onChange={event => setuserToShare(event.target.value)}></input>
+                  )
+                })
+              }
+            </td>
+            <td>
+              {
+                state.myFiles.map((u, i) => {
+                  return (
+                    <Button onClick={() => shareFile(u.id)}>{u.id}</Button>
+                  )
+                })
+              }
+            </td>
+            <td>
+              {
+                state.myFiles.map((u, i) => {
+                  return (
+                    <Button onClick={() => deleteFile(u.id)}>{u.id}</Button>
+                  )
+                })
+              }
+            </td>
+          </tr>
+        </tbody>
+      </Table>
     </div>
   )
 }
@@ -185,14 +292,7 @@ const styles = {
     cursor: 'pointer',
     border: '1px solid #ddd',
     padding: '5px 25px'
-  },
-  button: {
-    width: 200,
-    backgroundColor: '#ddd',
-    cursor: 'pointer',
-    height: 30,
-    margin: '0px 0px 8px'
   }
 }
 
-export default withAuthenticator(App, { includeGreetings: true })
+export default withAuthenticator(App)

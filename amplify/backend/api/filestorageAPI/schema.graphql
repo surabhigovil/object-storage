@@ -20,10 +20,9 @@ type S3Object {
   key: String!
 }
 
-type File @model @auth(rules: [{ allow: owner , ownerField: "groups"}]) {
+type File @model {
   id: ID!
   name: String,
   file: S3Object,
-  owner: String,
-  groups: [String]
+  owners: [String]
 }

@@ -125,7 +125,7 @@ export const createFile = /* GraphQL */ `
         region
         key
       }
-      owner
+      owners
       createdAt
       updatedAt
     }
@@ -144,7 +144,7 @@ export const updateFile = /* GraphQL */ `
         region
         key
       }
-      owner
+      owners
       createdAt
       updatedAt
     }
@@ -163,7 +163,7 @@ export const deleteFile = /* GraphQL */ `
         region
         key
       }
-      owner
+      owners
       createdAt
       updatedAt
     }
