@@ -135,7 +135,7 @@ function App() {
 
   async function createUser(event) {
     event.preventDefault()
-    if (!username) return alert('please enter a filename')
+    if (!file && !username) return alert('please enter a file')
     if (file && username) {
         const { name: fileName, type: mimeType } = file  
         const key = `${uuid()}${fileName}`
@@ -207,15 +207,8 @@ function App() {
   return (
     <div style={styles.container}>
       { !userGroup ? (
-        <div> Hello  </div>
-      ) : (
-        //state.getCognitoUsers.map((u,i) => {
-          //return (
-            <p>Hello</p>
-          //)
-        //})
-      )}
-      <div className="float-left">
+        <div>
+        <div className="float-left">
         <input
           label="File to upload"
           type="file"
@@ -298,6 +291,14 @@ function App() {
           </tbody>
         </Table>
       </div>
+      </div>
+      ) : (
+        //state.getCognitoUsers.map((u,i) => {
+          //return (
+            <p>Hello Admin</p>
+          //)
+        //})
+      )}
       <AmplifySignOut />
     </div>
   )
