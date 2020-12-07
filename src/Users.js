@@ -1,5 +1,5 @@
 import React, { useState, useReducer, useEffect } from 'react'
-import { Button, Table, Nav } from 'react-bootstrap';
+import { Button, Table } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { withAuthenticator, AmplifySignOut } from '@aws-amplify/ui-react'
 import Amplify, {Auth, Storage, API, graphqlOperation } from 'aws-amplify'
@@ -11,7 +11,9 @@ import { onCreateUser } from './graphql/subscriptions'
 import config from './aws-exports'
 import * as queries from './graphql/queries';
 import * as mutations from './graphql/mutations'
-import { BrowserRouter, Route, Switch } from 'react-router-dom';
+
+var AWS = require('aws-sdk');
+
 
 const {
   aws_user_files_s3_bucket_region: region,
@@ -20,8 +22,10 @@ const {
 
 const initialState = {
   users: [],
-  myFiles: []
+  myFiles: [],
+  getCognitoUsers: []
 }
+
 
 function reducer(state, action) {
   switch(action.type) {
@@ -39,7 +43,7 @@ function App() {
   const [username, updateUsername] = useState('')
   const [signedInUser, updateUser] = useState('')
   const [state, dispatch] = useReducer(reducer, initialState)
-  const [fileUrl, updateAvatarUrl] = useState('')
+  const [userGroup, setUserGroup] = useState('')
   const [signedIn, setUsername] = useState('')
   const [userToShare, setuserToShare] = useState('')
 
@@ -49,8 +53,9 @@ function App() {
   function handleChange(event) {
     const { target: { value, files } } = event
     const [image] = files || []
+    const user =  Auth.currentAuthenticatedUser()
     updateFile(image || value)
-    //updateUser(user.username)
+    updateUser(user.username)
   }
   
   async function fetchUsers() {
@@ -145,7 +150,7 @@ function App() {
             region,
         }
         const inputData = { username, file: fileForUpload }
-        const fileinputData = { name: file.name , file: fileForUpload, owner: signedInUser }
+        const fileinputData = { name: file.name , file: fileForUpload, owners: signedInUser }
 
         try {
           await Storage.put(key, file, {
@@ -156,17 +161,42 @@ function App() {
           await API.graphql(graphqlOperation(CreateFile, { input: fileinputData }))
           updateUsername('')
           console.log('successfully stored user data!')
+          window.location.reload()
         } catch (err) {
           console.log('error: ', err)
         }
     }
   }
+
+  async function getUsersRegistered(){
+    var params = {
+      UserPoolId: 'us-east-1_HXLjuizhW',
+      AttributesToGet: [
+      'email',
+      ],
+    };
+    AWS.config.update({ region: 'us-east-1', accessKeyId: 'AKIAZMEYBOJ3T4W7Q74X', secretAccessKey: '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' });
+    var cognitoidentityserviceprovider = new AWS.CognitoIdentityServiceProvider();
+    cognitoidentityserviceprovider.listUsers(params, (err, data) => {
+      if (err) {
+        console.log(err);
+      }
+      else {
+        console.log("data", data);
+        initialState.getCognitoUsers = data
+      }
+    })
+  }
+
   useEffect(() => {
     const user =  Auth.currentAuthenticatedUser();
     console.log('user: ', user);
-    console.log('user attributes: ', user.attributes);
+    const group = Auth.user.signInUserSession.accessToken.payload["cognito:groups"]
+    console.log('group: ', group);
+    setUserGroup(group)
     fetchUsers()
     getLoggedInUserFiles()
+    getUsersRegistered()
     const subscription = API.graphql(graphqlOperation(onCreateUser))
       .subscribe({
         next: async userData => {
@@ -179,93 +209,104 @@ function App() {
 
   return (
     <div style={styles.container}>
-      <h1>File Storage</h1>
-       <div className="sign-out">
-         <AmplifySignOut />
-       </div>
-      <input
-        label="File to upload"
-        type="file"
-        onChange={handleChange}
-        style={{margin: '10px 0px'}}
-      />
-      <input
-        placeholder='Username'
-        value="Enter File Name"
-        onChange={e => updateUsername(e.target.value)}
-      />
-      <Button type="submit"
-        style={styles.button}
-        onClick={createUser}>Upload File</Button>
-      <label>All Files
-        {
-          state.users.map((u, i) => {
-            return (
-              <div
-                key={i}
-              >
-              </div>
-            )
-          })
-        } 
-      </label>
-      <Table striped bordered hover variant="dark">
-        <thead>
-          <tr>
-            <th>Fiile</th>
-            <th>Shared With</th>
-            <th>Enter User Email</th>
-            <th>Delete File</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>
-              {
-                state.myFiles.map((u, i) => {
-                  return (
-                      <p>{u.name}</p>
-                  )
-                })
-              }
-            </td>
-            <td>
-              {
-                state.myFiles.map((u, i) => {
-                  return (
-                    <input onChange={event => setuserToShare(event.target.value)}></input>
-                  )
-                })
-              }
-            </td>
-            <td>
-              {
-                state.myFiles.map((u, i) => {
-                  return (
-                    <Button onClick={() => shareFile(u.id)}>{u.id}</Button>
-                  )
-                })
-              }
-            </td>
-            <td>
-              {
-                state.myFiles.map((u, i) => {
-                  return (
-                    <Button onClick={() => deleteFile(u.id)}>{u.id}</Button>
-                  )
-                })
-              }
-            </td>
-          </tr>
-        </tbody>
-      </Table>
+      { !userGroup ? (
+        <div> Hello  </div>
+      ) : (
+        //state.getCognitoUsers.map((u,i) => {
+          //return (
+            <p>Hello</p>
+          //)
+        //})
+      )}
+      <div className="float-left">
+        <input
+          label="File to upload"
+          type="file"
+          onChange={handleChange}
+          style={{margin: '10px 0px'}}
+        />
+        <div className="float-right">
+          <input
+            placeholder='File Name'
+            value={username}
+            onChange={e => updateUsername(e.target.value)}
+          />
+          <Button type="submit"
+            style={styles.button}
+            onClick={createUser}>Upload File</Button>
+        </div>
+      </div>
+      <div className="float-right">
+        <label>All Files
+          {
+            state.users.map((u, i) => {
+              return (
+                <div
+                  key={i}
+                >
+                </div>
+              )
+            })
+          } 
+        </label>
+        <Table striped bordered hover variant="dark">
+          <thead>
+            <tr>
+              <th>Fiile</th>
+              <th>Enter User Email to Share With</th>
+              <th>Share File</th>
+              <th>Delete File</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                {
+                  state.myFiles.map((u, i) => {
+                    return (
+                        <p>{u.name}</p>
+                    )
+                  })
+                }
+              </td>
+              <td>
+                {
+                  state.myFiles.map((u, i) => {
+                    return (
+                      <input onChange={event => setuserToShare(event.target.value)}></input>
+                    )
+                  })
+                }
+              </td>
+              <td>
+                {
+                  state.myFiles.map((u, i) => {
+                    return (
+                      <Button onClick={() => shareFile(u.id)}>Share!</Button>
+                    )
+                  })
+                }
+              </td>
+              <td>
+                {
+                  state.myFiles.map((u, i) => {
+                    return (
+                      <Button bsStyle="danger" onClick={() => deleteFile(u.id)}>Delete!</Button>
+                    )
+                  })
+                }
+              </td>
+            </tr>
+          </tbody>
+        </Table>
+      </div>
+      <AmplifySignOut />
     </div>
   )
 }
 
 const styles = {
   container: {
-    width: 300,
     margin: '0 auto'
   },
   username: {
@@ -275,4 +316,4 @@ const styles = {
   }
 }
 
-export default withAuthenticator(App)
+export default withAuthenticator(App);
