@@ -53,9 +53,7 @@ function App() {
   function handleChange(event) {
     const { target: { value, files } } = event
     const [image] = files || []
-    const user =  Auth.currentAuthenticatedUser()
     updateFile(image || value)
-    updateUser(user.username)
   }
   
   async function fetchUsers() {
@@ -121,9 +119,6 @@ function App() {
       let result = await API.graphql(graphqlOperation(queries.listFiles));
       let tempFile = result.data.listFiles.items
       const userNow = Auth.user.attributes.email
-      let params;
-      let fileOwners;
-      console.log("signedUser=", userNow)
       tempFile.map((file) => {
         if(file.owners && file.owners.includes(userNow))
         {
@@ -140,7 +135,7 @@ function App() {
 
   async function createUser(event) {
     event.preventDefault()
-    if (!username) return alert('please enter a username')
+    if (!username) return alert('please enter a filename')
     if (file && username) {
         const { name: fileName, type: mimeType } = file  
         const key = `${uuid()}${fileName}`
@@ -175,7 +170,7 @@ function App() {
       'email',
       ],
     };
-    AWS.config.update({ region: 'us-east-1', accessKeyId: 'AKIAZMEYBOJ3T4W7Q74X', secretAccessKey: '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' });
+    AWS.config.update({ region: '', accessKeyId: '', secretAccessKey: '' });
     var cognitoidentityserviceprovider = new AWS.CognitoIdentityServiceProvider();
     cognitoidentityserviceprovider.listUsers(params, (err, data) => {
       if (err) {
@@ -189,10 +184,12 @@ function App() {
   }
 
   useEffect(() => {
-    const user =  Auth.currentAuthenticatedUser();
-    console.log('user: ', user);
+    const userNow = Auth.user.attributes.email
+    const user = Auth.currentAuthenticatedUser
     const group = Auth.user.signInUserSession.accessToken.payload["cognito:groups"]
     console.log('group: ', group);
+    console.log('username: ', userNow);
+    updateUser(userNow)
     setUserGroup(group)
     fetchUsers()
     getLoggedInUserFiles()
@@ -295,6 +292,7 @@ function App() {
                     )
                   })
                 }
+                <br />
               </td>
             </tr>
           </tbody>
