@@ -165,12 +165,12 @@ function App() {
 
   async function getUsersRegistered(){
     var params = {
-      UserPoolId: 'us-east-1_HXLjuizhW',
+      UserPoolId: '',
       AttributesToGet: [
       'email',
       ],
     };
-    AWS.config.update({ region: 'us-east-1', accessKeyId: 'AKIAZMEYBOJ3T4W7Q74X', secretAccessKey: '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' });
+    AWS.config.update({ region: '', accessKeyId: '', secretAccessKey: '' });
     var cognitoidentityserviceprovider = new AWS.CognitoIdentityServiceProvider();
     cognitoidentityserviceprovider.listUsers(params, (err, data) => {
       if (err) {
