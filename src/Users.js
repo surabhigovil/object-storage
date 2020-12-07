@@ -22,8 +22,7 @@ const {
 
 const initialState = {
   users: [],
-  myFiles: [],
-  getCognitoUsers: []
+  myFiles: []
 }
 
 
@@ -46,6 +45,7 @@ function App() {
   const [userGroup, setUserGroup] = useState('')
   const [signedIn, setUsername] = useState('')
   const [userToShare, setuserToShare] = useState('')
+  const [getCognitoUsers, setCognitoUsers] = useState([])
 
   //const [myFiles, setuserFiles] = useState('')
 
@@ -170,20 +170,25 @@ function App() {
       'email',
       ],
     };
-    AWS.config.update({ region: '', accessKeyId: '', secretAccessKey: '' });
+    AWS.config.update({ region: 'us-east-1', accessKeyId: 'AKIAZMEYBOJ3T4W7Q74X', secretAccessKey: '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' });
     var cognitoidentityserviceprovider = new AWS.CognitoIdentityServiceProvider();
     cognitoidentityserviceprovider.listUsers(params, (err, data) => {
       if (err) {
         console.log(err);
       }
       else {
-        console.log("data", data);
-        initialState.getCognitoUsers = data
+        console.log(JSON.stringify(data))
+        let usernameArray = JSON.stringify(data.Users.map((user) => {
+          return user.Username;
+        }))
+        setCognitoUsers([...getCognitoUsers, usernameArray])
       }
     })
   }
 
   useEffect(() => {
+    let a = getCognitoUsers
+    console.log("mah print ", a)
     const userNow = Auth.user.attributes.email
     const user = Auth.currentAuthenticatedUser
     const group = Auth.user.signInUserSession.accessToken.payload["cognito:groups"]
@@ -206,98 +211,100 @@ function App() {
 
   return (
     <div style={styles.container}>
-      { !userGroup ? (
+      {!userGroup ? (
         <div>
-        <div className="float-left">
-        <input
-          label="File to upload"
-          type="file"
-          onChange={handleChange}
-          style={{margin: '10px 0px'}}
-        />
-        <div className="float-right">
-          <input
-            placeholder='File Name'
-            value={username}
-            onChange={e => updateUsername(e.target.value)}
-          />
-          <Button type="submit"
-            style={styles.button}
-            onClick={createUser}>Upload File</Button>
+          <div className="float-left">
+            <input
+              label="File to upload"
+              type="file"
+              onChange={handleChange}
+              style={{margin: '10px 0px'}}
+            />
+          </div>
+          <div className="float-right">
+            <input
+              placeholder='File Name'
+              value={username}
+              onChange={e => updateUsername(e.target.value)}
+            />
+            <Button type="submit"
+              style={styles.button}
+              onClick={createUser}>Upload File</Button>
+          </div>
+          <div className="float-right">
+            <label>All Files
+              {
+                state.users.map((u, i) => {
+                  return (
+                    <div
+                      key={i}
+                    >
+                    </div>
+                  )
+                })
+              } 
+            </label>
+            <Table striped bordered hover variant="dark">
+            <thead>
+              <tr>
+                <th>Fiile</th>
+                <th>Enter User Email to Share With</th>
+                <th>Share File</th>
+                <th>Delete File</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  {
+                    state.myFiles.map((u, i) => {
+                      return (
+                          <p>{u.name}</p>
+                      )
+                    })
+                  }
+                </td>
+                <td>
+                  {
+                    state.myFiles.map((u, i) => {
+                      return (
+                        <input onChange={event => setuserToShare(event.target.value)}></input>
+                      )
+                    })
+                  }
+                </td>
+                <td>
+                  {
+                    state.myFiles.map((u, i) => {
+                      return (
+                        <Button onClick={() => shareFile(u.id)}>Share!</Button>
+                      )
+                    })
+                  }
+                </td>
+                <td>
+                  {
+                    state.myFiles.map((u, i) => {
+                      return (
+                        <Button bsStyle="danger" onClick={() => deleteFile(u.id)}>Delete!</Button>
+                      )
+                    })
+                  }
+                  <br />
+                </td>
+              </tr>
+            </tbody>
+          </Table>
+          </div>
         </div>
-      </div>
-      <div className="float-right">
-        <label>All Files
-          {
-            state.users.map((u, i) => {
-              return (
-                <div
-                  key={i}
-                >
-                </div>
-              )
-            })
-          } 
-        </label>
-        <Table striped bordered hover variant="dark">
-          <thead>
-            <tr>
-              <th>Fiile</th>
-              <th>Enter User Email to Share With</th>
-              <th>Share File</th>
-              <th>Delete File</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                {
-                  state.myFiles.map((u, i) => {
-                    return (
-                        <p>{u.name}</p>
-                    )
-                  })
-                }
-              </td>
-              <td>
-                {
-                  state.myFiles.map((u, i) => {
-                    return (
-                      <input onChange={event => setuserToShare(event.target.value)}></input>
-                    )
-                  })
-                }
-              </td>
-              <td>
-                {
-                  state.myFiles.map((u, i) => {
-                    return (
-                      <Button onClick={() => shareFile(u.id)}>Share!</Button>
-                    )
-                  })
-                }
-              </td>
-              <td>
-                {
-                  state.myFiles.map((u, i) => {
-                    return (
-                      <Button bsStyle="danger" onClick={() => deleteFile(u.id)}>Delete!</Button>
-                    )
-                  })
-                }
-                <br />
-              </td>
-            </tr>
-          </tbody>
-        </Table>
-      </div>
-      </div>
       ) : (
-        //state.getCognitoUsers.map((u,i) => {
-          //return (
-            <p>Hello Admin</p>
-          //)
-        //})
+        <div>
+          {getCognitoUsers.map((u) => {
+            return (
+              <p>{u}</p>
+            );
+          })}
+        </div>
       )}
       <AmplifySignOut />
     </div>
