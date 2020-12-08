@@ -45,7 +45,7 @@ function App() {
   const [userGroup, setUserGroup] = useState('')
   const [signedIn, setUsername] = useState('')
   const [userToShare, setuserToShare] = useState('')
-  const [getCognitoUsers, setCognitoUsers] = useState([])
+  const [getUserCognito, setUserCognito] = useState([])
 
   //const [myFiles, setuserFiles] = useState('')
 
@@ -163,32 +163,54 @@ function App() {
     }
   }
 
-  async function getUsersRegistered(){
+  AWS.config.update({ region: '', accessKeyId: '', secretAccessKey: '' });
+  var cognitoidentityserviceprovider = new AWS.CognitoIdentityServiceProvider();
+
+  async function getUsersRegistered() {
     var params = {
       UserPoolId: '',
       AttributesToGet: [
-      'email',
+        'email',
       ],
     };
-    AWS.config.update({ region: '', accessKeyId: '', secretAccessKey: '' });
-    var cognitoidentityserviceprovider = new AWS.CognitoIdentityServiceProvider();
-    cognitoidentityserviceprovider.listUsers(params, (err, data) => {
-      if (err) {
-        console.log(err);
-      }
-      else {
-        console.log(JSON.stringify(data))
-        let usernameArray = JSON.stringify(data.Users.map((user) => {
-          return user.Username;
-        }))
-        setCognitoUsers([...getCognitoUsers, usernameArray])
-      }
-    })
+    var promise = new Promise((resolve, reject) => {
+      cognitoidentityserviceprovider.listUsers(params, (err, data) => {
+        if (err) {
+          console.log(err);
+          reject(err)
+        }
+        else {
+          console.log("data", data);
+          resolve(data)
+        }
+      })
+    });
+    let obj = {newName: ''};
+  
+    promise.then( result => {
+      console.log(result.Users[0].Username)
+      let usernameArray = result.Users.map((user) => {
+        return user.Username
+      })
+      setUserCognito(usernameArray);
+    }, function(error) {
+      setUserCognito(error);
+    });
+
+    
+  }
+
+  async function deleteCognitouser(email) {
+    if(email) {
+      console.log(email)
+      await cognitoidentityserviceprovider.adminDeleteUser({
+        UserPoolId: '',
+        Username: email,
+      }).promise();
+    }
   }
 
   useEffect(() => {
-    let a = getCognitoUsers
-    console.log("mah print ", a)
     const userNow = Auth.user.attributes.email
     const user = Auth.currentAuthenticatedUser
     const group = Auth.user.signInUserSession.accessToken.payload["cognito:groups"]
@@ -299,9 +321,13 @@ function App() {
         </div>
       ) : (
         <div>
-          {getCognitoUsers.map((u) => {
+          <h2>Cognito Users</h2>
+          {getUserCognito.map((u,i) => {
             return (
-              <p>{u}</p>
+              <ul class="list-group">
+                <li key={i} class="list-group-item">{u}</li>
+                <Button bsStyle="danger" onClick={() => deleteCognitouser(u)}>Delete!</Button>
+              </ul>
             );
           })}
         </div>
