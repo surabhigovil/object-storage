@@ -1,5 +1,5 @@
 import React, { useState, useReducer, useEffect } from 'react'
-import { Button, Table } from 'react-bootstrap';
+import { Button, Table} from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { withAuthenticator, AmplifySignOut } from '@aws-amplify/ui-react'
 import Amplify, {Auth, Storage, API, graphqlOperation } from 'aws-amplify'
@@ -12,7 +12,7 @@ import config from './aws-exports'
 import * as queries from './graphql/queries';
 import * as mutations from './graphql/mutations'
 
-var AWS = require('aws-sdk');
+var AWS = require('aws-sdk')
 
 
 const {
@@ -243,7 +243,8 @@ function App() {
               style={{margin: '10px 0px'}}
             />
           </div>
-          <div className="float-right">
+          <br />
+          <div>
             <input
               placeholder='File Name'
               value={username}
@@ -320,16 +321,26 @@ function App() {
           </div>
         </div>
       ) : (
-        <div>
-          <h2>Cognito Users</h2>
+        <div style={ styles.row }>
           {getUserCognito.map((u,i) => {
             return (
-              <ul class="list-group">
-                <li key={i} class="list-group-item">{u}</li>
-                <Button bsStyle="danger" onClick={() => deleteCognitouser(u)}>Delete!</Button>
-              </ul>
-            );
-          })}
+              <div style={styles.column}>
+                <div style={styles.card}>
+                  <h2>Cognito Users</h2>
+                  <li key={i} class="list-group-item">{u}<Button bsStyle="danger" onClick={() => deleteCognitouser(u)}>Delete!</Button></li>
+                </div>
+              </div>
+            )
+            })}
+          
+          {/* <h2>Cognito Users</h2>
+          <ul class="list-group">
+            {getUserCognito.map((u,i) => {
+              return (
+                <li key={i} class="list-group-item">{u}<Button bsStyle="danger" onClick={() => deleteCognitouser(u)}>Delete!</Button></li>
+              )
+            })}
+          </ul> */}
         </div>
       )}
       <AmplifySignOut />
@@ -345,6 +356,22 @@ const styles = {
     cursor: 'pointer',
     border: '1px solid #ddd',
     padding: '5px 25px'
+  },
+  
+  column: {
+    float: 'left',
+    width: '25%',
+    padding: '0 10px'
+  },
+  
+  row: {
+    margin: '0 -5px'
+  },
+  
+  card: {
+    padding: '16px',
+    text: 'center',
+    background: '#f1f1f1'
   }
 }
 
