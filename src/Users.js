@@ -1,7 +1,7 @@
 import React, { useState, useReducer, useEffect } from 'react'
-import { Button, Table} from 'react-bootstrap';
+import { Button, Table, Nav} from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { withAuthenticator, AmplifySignOut } from '@aws-amplify/ui-react'
+import { withAuthenticator, AmplifySignOut, AmplifyAuthenticator, AmplifySignIn } from '@aws-amplify/ui-react'
 import Amplify, {Auth, Storage, API, graphqlOperation } from 'aws-amplify'
 import { v4 as uuid } from 'uuid'
 import { createUser as CreateUser } from './graphql/mutations'
@@ -11,6 +11,7 @@ import { onCreateUser } from './graphql/subscriptions'
 import config from './aws-exports'
 import * as queries from './graphql/queries';
 import * as mutations from './graphql/mutations'
+import NavBar from './components/navbar';
 
 var AWS = require('aws-sdk')
 
@@ -208,7 +209,18 @@ function App() {
         Username: email,
       }).promise();
     }
+    window.location.reload();
   }
+
+  async function signOut() {
+    try {
+      await Auth.signOut();
+      window.location.reload();
+    } catch (error) {
+      console.log('Error signing out: ', error);
+    }
+  }
+
 
   useEffect(() => {
     const userNow = Auth.user.attributes.email
@@ -232,7 +244,10 @@ function App() {
   }, [])
 
   return (
-    <div style={styles.container}>
+    <div style={styles.container} >
+      <div>
+      <NavBar /></div><br/>
+      <div>
       {!userGroup ? (
         <div>
           <div className="float-left">
@@ -275,45 +290,16 @@ function App() {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>
-                  {
-                    state.myFiles.map((u, i) => {
-                      return (
-                          <p>{u.name}</p>
-                      )
-                    })
-                  }
-                </td>
-                <td>
-                  {
-                    state.myFiles.map((u, i) => {
-                      return (
-                        <input onChange={event => setuserToShare(event.target.value)}></input>
-                      )
-                    })
-                  }
-                </td>
-                <td>
-                  {
-                    state.myFiles.map((u, i) => {
-                      return (
-                        <Button onClick={() => shareFile(u.id)}>Share!</Button>
-                      )
-                    })
-                  }
-                </td>
-                <td>
-                  {
-                    state.myFiles.map((u, i) => {
-                      return (
-                        <Button bsStyle="danger" onClick={() => deleteFile(u.id)}>Delete!</Button>
-                      )
-                    })
-                  }
-                  <br />
-                </td>
-              </tr>
+              {
+                state.myFiles.map((u, i) => {
+                  return (
+                    <tr>
+                      <td><p>{u.name}</p></td>
+                      <td><input onChange={event => setuserToShare(event.target.value)}></input></td>
+                      <td><Button onClick={() => shareFile(u.id)}>Share!</Button></td>
+                      <td><Button bsStyle="danger" onClick={() => deleteFile(u.id)}>Delete!</Button></td>
+                    </tr>
+                  )})}
             </tbody>
           </Table>
           </div>
@@ -331,14 +317,14 @@ function App() {
             })}
         </div>
       )}
-      <AmplifySignOut />
+      </div>     
     </div>
   )
 }
 
 const styles = {
   container: {
-    margin: '0 auto'
+    margin: '0 auto',
   },
   username: {
     cursor: 'pointer',

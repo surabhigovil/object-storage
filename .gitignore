@@ -40,3 +40,4 @@ amplifytools.xcconfig
 package-lock.json
 .eslintcache
 src/CreateDoc.js
+yarn.lock
