@@ -240,7 +240,6 @@ function App() {
               label="File to upload"
               type="file"
               onChange={handleChange}
-              style={{margin: '10px 0px'}}
             />
           </div>
           <br />
@@ -250,8 +249,7 @@ function App() {
               value={username}
               onChange={e => updateUsername(e.target.value)}
             />
-            <Button type="submit"
-              style={styles.button}
+            <Button data-test="user-upload-button" type="submit"
               onClick={createUser}>Upload File</Button>
           </div>
           <div className="float-right">
@@ -326,21 +324,11 @@ function App() {
             return (
               <div style={styles.column}>
                 <div style={styles.card}>
-                  <h2>Cognito Users</h2>
                   <li key={i} class="list-group-item">{u}<Button bsStyle="danger" onClick={() => deleteCognitouser(u)}>Delete!</Button></li>
                 </div>
               </div>
             )
             })}
-          
-          {/* <h2>Cognito Users</h2>
-          <ul class="list-group">
-            {getUserCognito.map((u,i) => {
-              return (
-                <li key={i} class="list-group-item">{u}<Button bsStyle="danger" onClick={() => deleteCognitouser(u)}>Delete!</Button></li>
-              )
-            })}
-          </ul> */}
         </div>
       )}
       <AmplifySignOut />
