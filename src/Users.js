@@ -12,7 +12,7 @@ import config from './aws-exports'
 import * as queries from './graphql/queries';
 import * as mutations from './graphql/mutations'
 import NavBar from './components/navbar';
-import { Layout } from 'react-dropzone-uploader';
+import bg from './bg.png'
 
 var AWS = require('aws-sdk')
 
@@ -183,12 +183,12 @@ function App() {
   // }
 
   //Fetch all registered user from the cognito user pool
-  AWS.config.update({ region: '', accessKeyId: '', secretAccessKey: '' });
+  AWS.config.update({ region: 'us-east-1', accessKeyId: 'AKIAZMEYBOJ3WLEMACUU', secretAccessKey: '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' });
   var cognitoidentityserviceprovider = new AWS.CognitoIdentityServiceProvider();
 
   async function getUsersRegistered() {
     var params = {
-      UserPoolId: '',
+      UserPoolId: 'us-east-1_HXLjuizhW',
       AttributesToGet: [
         'email',
       ],
@@ -223,7 +223,7 @@ function App() {
     if(email) {
       console.log(email)
       await cognitoidentityserviceprovider.adminDeleteUser({
-        UserPoolId: '',
+        UserPoolId: 'us-east-1_HXLjuizhW',
         Username: email,
       }).promise();
     }
@@ -253,6 +253,7 @@ function App() {
 
   return (
     <div style={styles.container} >
+      <div  styles={{ backgroundImage:`url(${bg})` }}></div>
       <div>
       <NavBar /></div><br/>
       <div>
