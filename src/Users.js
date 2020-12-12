@@ -42,7 +42,7 @@ function reducer(state, action) {
 
 function App() {
   const [file, updateFile] = useState(null)
-  const [username, updateUsername] = useState('')
+  const [fileName, updateFilename] = useState('')
   const [signedInUser, updateUser] = useState('')
   const [state, dispatch] = useReducer(reducer, initialState)
   const [userGroup, setUserGroup] = useState('')
@@ -110,6 +110,7 @@ function App() {
           } catch(err) {
             console.log('error fetching files', err)
           }
+          window.location.reload()
         }
       })
     } else {
@@ -145,8 +146,8 @@ function App() {
   //create a record assocaiated with user on upload file
   async function createUserFile(event) {
     event.preventDefault()
-    if (!file && !username) return alert('please enter a file')
-    if (file && username) {
+    if (!file && !fileName) return alert('please enter a file')
+    if (file && fileName) {
         const { name: fileName, type: mimeType } = file  
         const key = `${uuid()}${fileName}`
         const fileForUpload = {
@@ -154,7 +155,7 @@ function App() {
             key,
             region,
         }
-        const inputData = { username, file: fileForUpload }
+        const inputData = { fileName, createdBy: signedInUser, file: fileForUpload }
         const fileinputData = { name: file.name , file: fileForUpload, owners: signedInUser }
 
         try {
@@ -164,7 +165,7 @@ function App() {
           })
           await API.graphql(graphqlOperation(CreateUser, { input: inputData }))
           await API.graphql(graphqlOperation(CreateFile, { input: fileinputData }))
-          updateUsername('')
+          updateFilename('')
           console.log('successfully stored user data!')
           window.location.reload()
         } catch (err) {
@@ -174,12 +175,12 @@ function App() {
   }
 
   //Download link to user files
-  async function selectFile(key) {
-    console.log(key)
-    const signedURL = await Storage.get(key,  {level: 'private'})
-    console.log(signedURL)
-    this.initialState.file(signedURL)
-  }
+  // async function selectFile(key) {
+  //   console.log(key)
+  //   const signedURL = await Storage.get(key,  {level: 'private'})
+  //   console.log(signedURL)
+  //   this.initialState.file(signedURL)
+  // }
 
   //Fetch all registered user from the cognito user pool
   AWS.config.update({ region: '', accessKeyId: '', secretAccessKey: '' });
@@ -267,25 +268,14 @@ function App() {
             <input
               style={styles.contentBoxInput}
               placeholder='File Name'
-              value={username}
-              onChange={e => updateUsername(e.target.value)}
+              value={fileName}
+              onChange={e => updateFilename(e.target.value)}
             />
             <Button bsStyle="warning" data-test="user-upload-button" type="submit"
               onClick={createUserFile}>Upload File</Button>
           </div>
           <div style={styles.contentBox}>
-            <label>All Files
-              {
-                state.users.map((u, i) => {
-                  return (
-                    <div
-                      key={i}
-                    >
-                    </div>
-                  )
-                })
-              } 
-            </label>
+            <label>All Files</label>
             <Table striped bordered hover variant="dark">
             <thead>
               <tr>
@@ -300,7 +290,7 @@ function App() {
                 state.myFiles.map((u, i) => {
                   return (
                     <tr>
-                      <td><a href={selectFile()}>{u.name}</a></td>
+                      <td>{u.name}</td>
                       <td><input onChange={event => setuserToShare(event.target.value)}></input></td>
                       <td><Button bsStyle="success" onClick={() => shareFile(u.id)}>Share!</Button></td>
                       <td><Button bsStyle="danger" onClick={() => deleteFile(u.id)}>Delete!</Button></td>
@@ -316,7 +306,9 @@ function App() {
             return (
               <div style={styles.column}>
                 <div style={styles.card}>
-                  <li key={i} class="list-group-item">{u}<Button bsStyle="danger" onClick={() => deleteCognitouser(u)}>Delete!</Button></li>
+                  <li key={i} class="list-group-item"><img src="https://img.icons8.com/pastel-glyph/128/000000/user-male--v1.png"/><br />
+                  {u}<br/>
+                  <Button bsStyle="danger" onClick={() => deleteCognitouser(u)}>Delete!</Button></li>
                 </div>
               </div>
             )

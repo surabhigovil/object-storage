@@ -8,7 +8,8 @@ export const createUser = /* GraphQL */ `
   ) {
     createUser(input: $input, condition: $condition) {
       id
-      username
+      fileName
+      createdBy
       file {
         bucket
         region
@@ -26,7 +27,8 @@ export const updateUser = /* GraphQL */ `
   ) {
     updateUser(input: $input, condition: $condition) {
       id
-      username
+      fileName
+      createdBy
       file {
         bucket
         region
@@ -44,69 +46,13 @@ export const deleteUser = /* GraphQL */ `
   ) {
     deleteUser(input: $input, condition: $condition) {
       id
-      username
+      fileName
+      createdBy
       file {
         bucket
         region
         key
       }
-      createdAt
-      updatedAt
-    }
-  }
-`;
-export const createDocument = /* GraphQL */ `
-  mutation CreateDocument(
-    $input: CreateDocumentInput!
-    $condition: ModelDocumentConditionInput
-  ) {
-    createDocument(input: $input, condition: $condition) {
-      id
-      name
-      fileLocation {
-        bucket
-        region
-        key
-      }
-      localowner
-      createdAt
-      updatedAt
-    }
-  }
-`;
-export const updateDocument = /* GraphQL */ `
-  mutation UpdateDocument(
-    $input: UpdateDocumentInput!
-    $condition: ModelDocumentConditionInput
-  ) {
-    updateDocument(input: $input, condition: $condition) {
-      id
-      name
-      fileLocation {
-        bucket
-        region
-        key
-      }
-      localowner
-      createdAt
-      updatedAt
-    }
-  }
-`;
-export const deleteDocument = /* GraphQL */ `
-  mutation DeleteDocument(
-    $input: DeleteDocumentInput!
-    $condition: ModelDocumentConditionInput
-  ) {
-    deleteDocument(input: $input, condition: $condition) {
-      id
-      name
-      fileLocation {
-        bucket
-        region
-        key
-      }
-      localowner
       createdAt
       updatedAt
     }

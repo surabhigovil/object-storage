@@ -5,7 +5,8 @@ export const getUser = /* GraphQL */ `
   query GetUser($id: ID!) {
     getUser(id: $id) {
       id
-      username
+      fileName
+      createdBy
       file {
         bucket
         region
@@ -25,51 +26,13 @@ export const listUsers = /* GraphQL */ `
     listUsers(filter: $filter, limit: $limit, nextToken: $nextToken) {
       items {
         id
-        username
+        fileName
+        createdBy
         file {
           bucket
           region
           key
         }
-        createdAt
-        updatedAt
-      }
-      nextToken
-    }
-  }
-`;
-export const getDocument = /* GraphQL */ `
-  query GetDocument($id: ID!) {
-    getDocument(id: $id) {
-      id
-      name
-      fileLocation {
-        bucket
-        region
-        key
-      }
-      localowner
-      createdAt
-      updatedAt
-    }
-  }
-`;
-export const listDocuments = /* GraphQL */ `
-  query ListDocuments(
-    $filter: ModelDocumentFilterInput
-    $limit: Int
-    $nextToken: String
-  ) {
-    listDocuments(filter: $filter, limit: $limit, nextToken: $nextToken) {
-      items {
-        id
-        name
-        fileLocation {
-          bucket
-          region
-          key
-        }
-        localowner
         createdAt
         updatedAt
       }
