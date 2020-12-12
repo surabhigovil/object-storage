@@ -41,3 +41,5 @@ package-lock.json
 src/CreateDoc.js
 yarn.lock
 /cypress
+
+.env
