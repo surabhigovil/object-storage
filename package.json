@@ -17,6 +17,7 @@
     "cypress-file-upload": "^4.1.1",
     "graphql": "^15.4.0",
     "graphql-tag": "^2.11.0",
+    "mdbreact": "^5.0.1",
     "react": "^17.0.1",
     "react-apollo": "^3.1.5",
     "react-bootstrap": "^0.32.4",

@@ -19,7 +19,7 @@ class NavBar extends React.Component {
             <div className={ styles.navbar }>
                 <div className={ styles.navbar }>
                     <p className={ styles.brand }>Dossier</p>
-                    <Button onClick={signOut} className={styles.navbtn }>Sign Out</Button>
+                    <Button data-test="sign-out-button" onClick={signOut} className={styles.navbtn }>Sign Out</Button>
                 </div>
             </div>
         </div>

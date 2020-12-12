@@ -12,6 +12,7 @@ import config from './aws-exports'
 import * as queries from './graphql/queries';
 import * as mutations from './graphql/mutations'
 import NavBar from './components/navbar';
+import { Layout } from 'react-dropzone-uploader';
 
 var AWS = require('aws-sdk')
 
@@ -23,7 +24,8 @@ const {
 
 const initialState = {
   users: [],
-  myFiles: []
+  myFiles: [],
+  file: ''
 }
 
 
@@ -57,6 +59,7 @@ function App() {
     updateFile(image || value)
   }
   
+  //getting all users in the pool
   async function fetchUsers() {
     try {
      let users = await API.graphql(graphqlOperation(listUsers))
@@ -67,6 +70,7 @@ function App() {
     }
   }
 
+  //Delete user file
   async function deleteFile(id) {
     if (id) {
       let res = await API.graphql(graphqlOperation(queries.listFiles, {id: id}));
@@ -80,6 +84,8 @@ function App() {
       console.error("No file to delete")
     }
   }
+
+  //Share file with other users
   async function shareFile(id) { // share with other users
     let res = await API.graphql(graphqlOperation(queries.listFiles, {id: signedIn}));
     let tempList = res.data.listFiles.items
@@ -111,10 +117,12 @@ function App() {
     }
   }
 
+  //utility function to get each file from a list of files in case of multiple file selection
   function splitUserList(userToShare) {
     return userToShare.trim().split(',').map((i) => i.trim())
   }
 
+  //List all the signed In user files
   async function getLoggedInUserFiles() { // get current user files
     try{
       let result = await API.graphql(graphqlOperation(queries.listFiles));
@@ -134,7 +142,8 @@ function App() {
     }
   }
 
-  async function createUser(event) {
+  //create a record assocaiated with user on upload file
+  async function createUserFile(event) {
     event.preventDefault()
     if (!file && !username) return alert('please enter a file')
     if (file && username) {
@@ -164,6 +173,15 @@ function App() {
     }
   }
 
+  //Download link to user files
+  async function selectFile(key) {
+    console.log(key)
+    const signedURL = await Storage.get(key,  {level: 'private'})
+    console.log(signedURL)
+    this.initialState.file(signedURL)
+  }
+
+  //Fetch all registered user from the cognito user pool
   AWS.config.update({ region: '', accessKeyId: '', secretAccessKey: '' });
   var cognitoidentityserviceprovider = new AWS.CognitoIdentityServiceProvider();
 
@@ -197,10 +215,9 @@ function App() {
     }, function(error) {
       setUserCognito(error);
     });
-
-    
   }
 
+  //Delete selected user cognito user pool
   async function deleteCognitouser(email) {
     if(email) {
       console.log(email)
@@ -211,16 +228,6 @@ function App() {
     }
     window.location.reload();
   }
-
-  async function signOut() {
-    try {
-      await Auth.signOut();
-      window.location.reload();
-    } catch (error) {
-      console.log('Error signing out: ', error);
-    }
-  }
-
 
   useEffect(() => {
     const userNow = Auth.user.attributes.email
@@ -249,25 +256,24 @@ function App() {
       <NavBar /></div><br/>
       <div>
       {!userGroup ? (
-        <div>
-          <div className="float-left">
+        <div style={styles.filesContainer}>
+          <div style={styles.uploadBox}>
             <input
+              style={styles.contentBoxInput}
               label="File to upload"
               type="file"
               onChange={handleChange}
             />
-          </div>
-          <br />
-          <div>
             <input
+              style={styles.contentBoxInput}
               placeholder='File Name'
               value={username}
               onChange={e => updateUsername(e.target.value)}
             />
-            <Button data-test="user-upload-button" type="submit"
-              onClick={createUser}>Upload File</Button>
+            <Button bsStyle="warning" data-test="user-upload-button" type="submit"
+              onClick={createUserFile}>Upload File</Button>
           </div>
-          <div className="float-right">
+          <div style={styles.contentBox}>
             <label>All Files
               {
                 state.users.map((u, i) => {
@@ -283,8 +289,8 @@ function App() {
             <Table striped bordered hover variant="dark">
             <thead>
               <tr>
-                <th>Fiile</th>
-                <th>Enter User Email to Share With</th>
+                <th>My Files</th>
+                <th>Share With</th>
                 <th>Share File</th>
                 <th>Delete File</th>
               </tr>
@@ -294,9 +300,9 @@ function App() {
                 state.myFiles.map((u, i) => {
                   return (
                     <tr>
-                      <td><p>{u.name}</p></td>
+                      <td><a href={selectFile()}>{u.name}</a></td>
                       <td><input onChange={event => setuserToShare(event.target.value)}></input></td>
-                      <td><Button onClick={() => shareFile(u.id)}>Share!</Button></td>
+                      <td><Button bsStyle="success" onClick={() => shareFile(u.id)}>Share!</Button></td>
                       <td><Button bsStyle="danger" onClick={() => deleteFile(u.id)}>Delete!</Button></td>
                     </tr>
                   )})}
@@ -346,7 +352,42 @@ const styles = {
     padding: '16px',
     text: 'center',
     background: '#f1f1f1'
+  },
+
+  uploadBox: {
+    margin: '40px',
+    position: 'relative',
+    padding: '100px',
+    boxShadow: '1px 3px 1px #9E9E9E',
+    width: '50%',
+    float: 'left',
+    padding: '20px',
+    border: '2px solid red'
+
+  },
+
+  contentBox: {
+    margin: '40px',
+    position: 'relative',
+    padding: '100px',
+    boxShadow: '1px 3px 1px #9E9E9E',
+    width: '50%',
+    float: 'left',
+    padding: '20px',
+    border: '2px solid red',
+    display: 'inline-block',
+    content: ' '
+  },
+
+  contentBoxInput: {
+    display:'inline-block'
+  },
+
+  filesContainer: {
+    border: '3px solid #fff',
+    padding: '20px'
   }
+
 }
 
 export default withAuthenticator(App);
