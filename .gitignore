@@ -37,9 +37,8 @@ amplify-build-config.json
 amplify-gradle-config.json
 amplifytools.xcconfig
 package-lock.json
-.eslintcache
-src/CreateDoc.js
+./eslintcache
 yarn.lock
-/cypress
 
-.env
+src/config.json
+.eslintcache
