@@ -13,8 +13,6 @@ import * as queries from './graphql/queries';
 import * as mutations from './graphql/mutations'
 import NavBar from './components/navbar';
 
-var config_aws = require('./config.json');
-
 var AWS = require('aws-sdk')
 
 
@@ -184,12 +182,12 @@ function App() {
   // }
 
   //Fetch all registered user from the cognito user pool
-  AWS.config.update({ region:  `${config_aws.region}`, accessKeyId: `${config_aws.access_key}`, secretAccessKey:  `${config_aws.secret_key}` });
+  AWS.config.update({ region:  `${config.aws_project_region}`, accessKeyId: `${process.env.AMPLIFY_AMAZON_CLIENT_ID}`, secretAccessKey:  `${process.env.AMPLIFY_AMAZON_CLIENT_SECRET}` });
   var cognitoidentityserviceprovider = new AWS.CognitoIdentityServiceProvider();
 
   async function getUsersRegistered() {
     var params = {
-      UserPoolId:  `${config_aws.pool_id}`,
+      UserPoolId:  `${config.aws_user_pools_id}`,
       AttributesToGet: [
         'email',
       ],
@@ -224,7 +222,7 @@ function App() {
     if(email) {
       console.log(email)
       await cognitoidentityserviceprovider.adminDeleteUser({
-        UserPoolId: `${config_aws.pool_id}`,
+        UserPoolId: `${config.aws_user_pools_id}`,
         Username: email,
       }).promise();
     }
