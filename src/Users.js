@@ -1,7 +1,7 @@
 import React, { useState, useReducer, useEffect } from 'react'
-import { Button, Table, Nav} from 'react-bootstrap';
+import { Button, Table} from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { withAuthenticator, AmplifySignOut, AmplifyAuthenticator, AmplifySignIn } from '@aws-amplify/ui-react'
+import { withAuthenticator } from '@aws-amplify/ui-react'
 import Amplify, {Auth, Storage, API, graphqlOperation } from 'aws-amplify'
 import { v4 as uuid } from 'uuid'
 import { createUser as CreateUser } from './graphql/mutations'
@@ -12,7 +12,8 @@ import config from './aws-exports'
 import * as queries from './graphql/queries';
 import * as mutations from './graphql/mutations'
 import NavBar from './components/navbar';
-import bg from './bg.png'
+
+var config_aws = require('./config.json');
 
 var AWS = require('aws-sdk')
 
@@ -183,12 +184,12 @@ function App() {
   // }
 
   //Fetch all registered user from the cognito user pool
-  AWS.config.update({ region: 'us-east-1', accessKeyId: 'AKIAZMEYBOJ3WLEMACUU', secretAccessKey: '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' });
+  AWS.config.update({ region:  `${config_aws.region}`, accessKeyId: `${config_aws.access_key}`, secretAccessKey:  `${config_aws.secret_key}` });
   var cognitoidentityserviceprovider = new AWS.CognitoIdentityServiceProvider();
 
   async function getUsersRegistered() {
     var params = {
-      UserPoolId: 'us-east-1_HXLjuizhW',
+      UserPoolId:  `${config_aws.pool_id}`,
       AttributesToGet: [
         'email',
       ],
@@ -223,7 +224,7 @@ function App() {
     if(email) {
       console.log(email)
       await cognitoidentityserviceprovider.adminDeleteUser({
-        UserPoolId: 'us-east-1_HXLjuizhW',
+        UserPoolId: `${config_aws.pool_id}`,
         Username: email,
       }).promise();
     }
@@ -253,7 +254,6 @@ function App() {
 
   return (
     <div style={styles.container} >
-      <div  styles={{ backgroundImage:`url(${bg})` }}></div>
       <div>
       <NavBar /></div><br/>
       <div>
@@ -292,7 +292,7 @@ function App() {
                   return (
                     <tr>
                       <td>{u.name}</td>
-                      <td><input onChange={event => setuserToShare(event.target.value)}></input></td>
+                      <td><input placeholder='Enter the email you want to share it with' onChange={event => setuserToShare(event.target.value)}></input></td>
                       <td><Button bsStyle="success" onClick={() => shareFile(u.id)}>Share!</Button></td>
                       <td><Button bsStyle="danger" onClick={() => deleteFile(u.id)}>Delete!</Button></td>
                     </tr>
