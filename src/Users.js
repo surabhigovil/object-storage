@@ -193,6 +193,7 @@ function App() {
         'email',
       ],
     };
+    console.log(`${process.env.AMPLIFY_AMAZON_CLIENT_ID}`)
     var promise = new Promise((resolve, reject) => {
       cognitoidentityserviceprovider.listUsers(params, (err, data) => {
         if (err) {
