@@ -42,3 +42,4 @@ yarn.lock
 
 src/config.json
 .eslintcache
+src/aws-exports.js

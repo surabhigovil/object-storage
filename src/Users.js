@@ -3,6 +3,7 @@ import { Button, Table} from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { withAuthenticator } from '@aws-amplify/ui-react'
 import Amplify, {Auth, Storage, API, graphqlOperation } from 'aws-amplify'
+import { AmplifyAuthenticator, AmplifySignIn, AmplifySignUp, AmplifySignOut } from "@aws-amplify/ui-react";
 import { v4 as uuid } from 'uuid'
 import { createUser as CreateUser } from './graphql/mutations'
 import { createFile as CreateFile } from './graphql/mutations'
@@ -228,6 +229,13 @@ function App() {
     }
     window.location.reload();
   }
+
+
+function signOut() {
+  Auth.signOut()
+    .then(data => console.log(data))
+    .catch(err => console.log(err));
+}
 
   useEffect(() => {
     const userNow = Auth.user.attributes.email
