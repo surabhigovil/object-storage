@@ -188,7 +188,7 @@ function App() {
 
   async function getUsersRegistered() {
     var params = {
-      UserPoolId:  `${process.env.User_POOL_ID}`,
+      UserPoolId:`${pconfig.aws_user_pools_id}`,
       AttributesToGet: [
         'email',
       ],
@@ -222,7 +222,7 @@ function App() {
     if(email) {
       console.log(email)
       await cognitoidentityserviceprovider.adminDeleteUser({
-        UserPoolId: `${process.env.User_POOL_ID}`,
+        UserPoolId:`${pconfig.aws_user_pools_id}`,
         Username: email,
       }).promise();
     }
