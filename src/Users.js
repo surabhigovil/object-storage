@@ -183,7 +183,7 @@ function App() {
   // }
 
   //Fetch all registered user from the cognito user pool
-  AWS.config.update({ region:  `${process.env.aws_project_region}`, accessKeyId: `${process.env.ACCESS_KEY}`, secretAccessKey:  `${process.env.SECRET_KEY}` });
+  AWS.config.update({ region:  `${process.env.project_region}`, accessKeyId: `${process.env.ACCESS_KEY}`, secretAccessKey:  `${process.env.SECRET_KEY}` });
   var cognitoidentityserviceprovider = new AWS.CognitoIdentityServiceProvider();
 
   async function getUsersRegistered() {
