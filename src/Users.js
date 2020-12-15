@@ -183,19 +183,17 @@ function App() {
   // }
 
   //Fetch all registered user from the cognito user pool
-  AWS.config.update({ region:  `${config.aws_project_region}`, accessKeyId: `${process.env.AMPLIFY_AMAZON_CLIENT_ID}`, secretAccessKey:  `${process.env.AMPLIFY_AMAZON_CLIENT_SECRET}` });
+  AWS.config.update({ region:  `${process.env.aws_project_region}`, accessKeyId: `${process.env.ACCESS_KEY}`, secretAccessKey:  `${process.env.SECRET_KEY}` });
   var cognitoidentityserviceprovider = new AWS.CognitoIdentityServiceProvider();
 
   async function getUsersRegistered() {
     var params = {
-      UserPoolId:  `${config.aws_user_pools_id}`,
+      UserPoolId:  `${process.env.User_POOL_ID}`,
       AttributesToGet: [
         'email',
       ],
     };
-    console.log(`${process.env.AMPLIFY_AMAZON_CLIENT_ID}`)
-    var promise = new Promise((resolve, reject) => {
-      cognitoidentityserviceprovider.listUsers(params, (err, data) => {
+    var promise = new Promise((resolve, reject) => { cognitoidentityserviceprovider.listUsers(params, (err, data) => {
         if (err) {
           console.log(err);
           reject(err)
@@ -224,7 +222,7 @@ function App() {
     if(email) {
       console.log(email)
       await cognitoidentityserviceprovider.adminDeleteUser({
-        UserPoolId: `${config.aws_user_pools_id}`,
+        UserPoolId: `${process.env.User_POOL_ID}`,
         Username: email,
       }).promise();
     }
