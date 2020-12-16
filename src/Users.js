@@ -200,7 +200,6 @@ function App() {
           reject(err)
         }
         else {
-          console.log("data", data);
           resolve(data)
         }
       })
@@ -208,7 +207,6 @@ function App() {
     let obj = {newName: ''};
   
     promise.then( result => {
-      console.log(result.Users[0].Username)
       let usernameArray = result.Users.map((user) => {
         return user.Username
       })
@@ -241,8 +239,6 @@ function signOut() {
     const userNow = Auth.user.attributes.email
     const user = Auth.currentAuthenticatedUser
     const group = Auth.user.signInUserSession.accessToken.payload["cognito:groups"]
-    console.log('group: ', group);
-    console.log('username: ', userNow);
     updateUser(userNow)
     setUserGroup(group)
     fetchUsers()
