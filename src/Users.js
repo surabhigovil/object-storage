@@ -129,6 +129,7 @@ function App() {
       let result = await API.graphql(graphqlOperation(queries.listFiles));
       let tempFile = result.data.listFiles.items
       const userNow = Auth.user.attributes.email
+      console.log(`${process.env.ACCESS_KEY}`);
       tempFile.map((file) => {
         if(file.owners && file.owners.includes(userNow))
         {
@@ -196,7 +197,6 @@ function App() {
     var promise = new Promise((resolve, reject) => { cognitoidentityserviceprovider.listUsers(params, (err, data) => {
         if (err) {
           console.log(err);
-          console.log(`${process.env.ACCESS_KEY}`);
           reject(err)
         }
         else {
