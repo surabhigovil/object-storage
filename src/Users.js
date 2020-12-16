@@ -13,6 +13,7 @@ import config from './aws-exports'
 import * as queries from './graphql/queries';
 import * as mutations from './graphql/mutations'
 import NavBar from './components/navbar';
+const dotenv = require('dotenv');
 
 var AWS = require('aws-sdk')
 
@@ -129,7 +130,7 @@ function App() {
       let result = await API.graphql(graphqlOperation(queries.listFiles));
       let tempFile = result.data.listFiles.items
       const userNow = Auth.user.attributes.email
-      console.log(`${process.env.ACCESS_KEY}`);
+      console.log(`${process.env.REACT_APP_ACCESS_KEY}`);
       tempFile.map((file) => {
         if(file.owners && file.owners.includes(userNow))
         {
@@ -184,7 +185,7 @@ function App() {
   // }
 
   //Fetch all registered user from the cognito user pool
-  AWS.config.update({ region:`${config.aws_project_region}`, accessKeyId:`${process.env.ACCESS_KEY}`, secretAccessKey:`${process.env.SECRET_KEY}` });
+  AWS.config.update({ region:`${config.aws_project_region}`, accessKeyId:`${process.env.REACT_APP_ACCESS_KEY}`, secretAccessKey:`${process.env.REACT_APP_SECRET_KEY}` });
   var cognitoidentityserviceprovider = new AWS.CognitoIdentityServiceProvider();
 
   async function getUsersRegistered() {
