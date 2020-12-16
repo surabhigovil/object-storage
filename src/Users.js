@@ -130,7 +130,6 @@ function App() {
       let result = await API.graphql(graphqlOperation(queries.listFiles));
       let tempFile = result.data.listFiles.items
       const userNow = Auth.user.attributes.email
-      console.log(`${process.env.REACT_APP_ACCESS_KEY}`);
       tempFile.map((file) => {
         if(file.owners && file.owners.includes(userNow))
         {
