@@ -183,7 +183,7 @@ function App() {
   // }
 
   //Fetch all registered user from the cognito user pool
-  AWS.config.update({ region:`${config.aws_project_region}`, accessKeyId: `${process.env.ACCESS_KEY}`, secretAccessKey:  `${process.env.SECRET_KEY}` });
+  AWS.config.update({ region:`${config.aws_project_region}`, accessKeyId:`${process.env.ACCESS_KEY}`, secretAccessKey:`${process.env.SECRET_KEY}` });
   var cognitoidentityserviceprovider = new AWS.CognitoIdentityServiceProvider();
 
   async function getUsersRegistered() {
@@ -196,6 +196,7 @@ function App() {
     var promise = new Promise((resolve, reject) => { cognitoidentityserviceprovider.listUsers(params, (err, data) => {
         if (err) {
           console.log(err);
+          console.log(`${process.env.ACCESS_KEY}`);
           reject(err)
         }
         else {
